@@ -47,7 +47,7 @@
 typedef struct {
 	char site[32];
 	char domain[32];
-	unsigned short int online[31][24];
+	short int online[31][24];
 } DATA;
 
 typedef struct {
