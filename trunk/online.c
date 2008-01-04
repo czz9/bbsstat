@@ -1,16 +1,16 @@
 /* ---------------------------------------------------- */
-/* online_day.c        (各BBS人气统计机)		            */
+/* online.c        (各BBS人气统计机)		        */
 /* ---------------------------------------------------- */
 /* Author: hightman.bbs@bbs.dot66.net                   */
 /*         lazy_lee@bigfoot.com                         */
 /* Create: 2001/12/02                                   */
 /* Update:                                              */
 /* ---------------------------------------------------- */
-/* Usage : gcc -o online_day online_day.c		        */
-/* Syntax: online_day                                   */
+/* Usage : gcc -o online online.c		        */
+/* Syntax: online	                                */
 /* ---------------------------------------------------- */
 
-/* $Id: online_day.c,v 1.3 2004/03/26 18:20:34 czz Exp $ */
+/* $Id$ */
 
 #define BBSLIST		"bbslist.conf"
 #define PLOTDATA	"plotdata"
