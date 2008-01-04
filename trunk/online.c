@@ -18,6 +18,7 @@
 #define	MAXSITE		300		/* BBS站的最多个数 */
 #define	TIMEOUT		40
 #define TOP_NUM		10
+#define GNUPLOT_37   // define this if you are using gnuplot<4.0
 
 #define IAC     0xff
 #define DONT    0xfe
@@ -47,7 +48,7 @@
 typedef struct {
 	char site[32];
 	char domain[32];
-	short int online[31][24];
+	int online[31][24];
 } DATA;
 
 typedef struct {
@@ -177,7 +178,7 @@ void ProcessIAC(int socket, unsigned char *buf, int buflen)
 
 
 int MyRead(int socket, unsigned char *buf, int maxlen) {
-	int i, j;
+	int j;
 	j = read(socket, buf, maxlen);
 	if (j<=0) {
 
@@ -284,6 +285,16 @@ char* GetDataFilename()
 	return filename;
 }
 
+int GetWeekNum(struct tm atime)
+{
+	char temp[8];
+	int i;
+	strftime(temp, 8, "%W", &atime);
+	i = atoi(temp);
+	if(atime.tm_wday==0) i++;
+	return i;
+}
+
 void SaveOriginalData(DATA data[], int count)
 {
 	FILE *fout;
@@ -344,7 +355,11 @@ void GenDayGraphData(DATA data[], int rank[])
 		exit(-1);
 	}
 
+#ifdef GNUPLOT_37
 	fprintf(fout,"set terminal png color\n");
+#else
+	fprintf(fout,"set terminal png\n");
+#endif
 	fprintf(fout,"set output \"day.png\" \n");
 	fprintf(fout,"set title \"Top Ten Sites Population (%d.%d.%d)\" \n", 1900+timep.tm_year, timep.tm_mon+1, timep.tm_mday);
 	fprintf(fout,"set xlabel \"Time\" \n");
@@ -400,7 +415,11 @@ void GenWeekGraphData(STAT stat[], int rank[])
 		exit(-1);
 	}
 
-	fprintf(fout,"\nset terminal png color\n");
+#ifdef GNUPLOT_37
+	fprintf(fout,"set terminal png color\n");
+#else
+	fprintf(fout,"set terminal png\n");
+#endif
 	fprintf(fout,"set output \"week.png\" \n");
 	fprintf(fout,"set title \"Top Ten Sites Population (No.%d Week, %d)\" \n", GetWeekNum(timep)+1, 1900+timep.tm_year);
 	fprintf(fout,"set xlabel \"Day\" \n");
@@ -458,7 +477,11 @@ void GenMonthGraphData(STAT stat[], int rank[])
 		exit(-1);
 	}
 
-	fprintf(fout,"\nset terminal png color\n");
+#ifdef GNUPLOT_37
+	fprintf(fout,"set terminal png color\n");
+#else
+	fprintf(fout,"set terminal png\n");
+#endif
 	fprintf(fout,"set output \"month.png\" \n");
 	fprintf(fout,"set title \"Top Ten Sites Population (%d.%d)\" \n",1900+timep.tm_year,timep.tm_mon+1);
 	fprintf(fout,"set xlabel \"Date\" \n");
@@ -514,7 +537,11 @@ void GenYearGraphData(STAT stat[], int rank[])
 		exit(-1);
 	}
 
-	fprintf(fout,"\nset terminal png color\n");
+#ifdef GNUPLOT_37
+	fprintf(fout,"set terminal png color\n");
+#else
+	fprintf(fout,"set terminal png\n");
+#endif
 	fprintf(fout,"set output \"year.png\" \n");
 	fprintf(fout,"set title \"Top Ten Sites Population (%d)\" \n",1900+timep.tm_year);
 	fprintf(fout,"set xlabel \"Month\" \n");
@@ -1159,16 +1186,6 @@ int LoadOldStatisticData(char *filename, STAT stat[])
 	return i;
 }
 
-int GetWeekNum(struct tm atime)
-{
-	char temp[8];
-	int i;
-	strftime(temp, 8, "%W", &atime);
-	i = atoi(temp);
-	if(atime.tm_wday==0) i++;
-	return i;
-}
-
 void ClearOldStatData(STAT stat[], int count)
 {
 	int i,j;
@@ -1198,7 +1215,7 @@ int main(int argc, char *argv[]) {
 	char buf[256], *ptr;
 	char *domainName, *siteName, *bbsHost, *tagString, *loginCmd;
 	int i,j, k, index, count, bbsPort, total[35],rows,nsite;
-	struct tm *xtime;
+	time_t t1, t2;
 	FILE *fin;
 	DATA data[MAXSITE],temp;
 	DAYAVG dayavg[MAXSITE];
@@ -1269,8 +1286,15 @@ int main(int argc, char *argv[]) {
 		/*保证数据记录文件中的siteName与BBSLIST中的一致*/
 		strncpy(data[index].site,siteName,31);
 
+		t1 = time(NULL);
 		count = GetOnline(bbsHost, bbsPort, tagString, loginCmd);
-		printf("No.%d %s 当前在线(%2d时)：%d 人\n", index+1, siteName, timep.tm_hour, count);
+		t2 = time(NULL);
+		printf("No.%d %s 当前在线(%2d时)：%d 人。", index+1, siteName, timep.tm_hour, count);
+		if (count>=0) {
+			printf("连接耗时：%d 秒。\n", (int)(t2-t1));
+		} else {
+			printf("\n");
+		}
 		data[index].online[timep.tm_mday-1][timep.tm_hour] = count;
 		index++;
 	}
