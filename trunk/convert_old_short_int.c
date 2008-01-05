@@ -50,7 +50,7 @@ int	main(int argc, char	**argv)
 		memcpy(&d2, &d1, sizeof(DATAv1));
 		for(i=0;i<31;i++) {
 			for(j=0;j<24;j++) {
-				if (d1.online[i][j] >> 15) //negative
+				if (d1.online[i][j] == 0xffff) //negative
 					d2.online[i][j] = -1;
 				else
 					d2.online[i][j] = d1.online[i][j];
